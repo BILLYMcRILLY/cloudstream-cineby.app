@@ -7,8 +7,8 @@
     "language": "en",
     "version": 1,
     "internalName": "cineby",
-    "description": "Plugin for cineby.app",
-    "url": "https://raw.githubusercontent.com/BILLYMcRILLY/cloudstream-cineby.app/main/cineby.json",
+    "description": "Cineby provider (Cineby.cs3)",
+    "url": "https://raw.githubusercontent.com/BILLYMcRILLY/cloudstream-cineby.app/main/Cineby.cs3",
     "name": "Cineby"
   }
 ]
