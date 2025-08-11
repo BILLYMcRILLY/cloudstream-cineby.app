@@ -1,0 +1,92 @@
+// Cineby.cs3
+// Cloudstream 3 provider for https://cineby.app
+// Drop into repo root and update repository.json to point to this file.
+
+import org.jsoup.Jsoup
+import java.util.regex.Pattern
+
+val baseUrl = "https://cineby.app"
+
+fun fetchHtml(url: String): String {
+    return request(url).text() // Cloudstream provides `request()` in env
+}
+
+fun getAbsoluteUrl(relative: String): String {
+    return if (relative.startsWith("http")) relative else baseUrl.trimEnd('/') + "/" + relative.trimStart('/')
+}
+
+// ---------- Entry: list (homepage)
+fun list(): List<Any> {
+    val out = ArrayList<Any>()
+    val html = fetchHtml(baseUrl)
+    val doc = Jsoup.parse(html, baseUrl)
+
+    // card selector from you: .movieCard_movieCardFilter__EZTIk
+    val cards = doc.select(".movieCard_movieCardFilter__EZTIk")
+    for (card in cards) {
+        // try to find link, poster, title
+        val a = card.selectFirst("a")
+        val href = a?.attr("href") ?: continue
+        val url = getAbsoluteUrl(href)
+        val title = (card.selectFirst("h3")?.text()
+            ?: a?.attr("title")
+            ?: card.selectFirst("img")?.attr("alt")
+            ?: "Unknown Title")
+        val poster = card.selectFirst("img")?.absUrl("src") ?: card.selectFirst("img")?.attr("data-src") ?: ""
+        val item = mapOf(
+            "type" to "movie",
+            "title" to title,
+            "url" to url,
+            "poster" to poster
+        )
+        out.add(item)
+    }
+
+    return out
+}
+
+// ---------- Entry: details (open item to get playable streams)
+fun details(detailUrl: String): Map<String, Any> {
+    val html = fetchHtml(detailUrl)
+    val doc = Jsoup.parse(html, baseUrl)
+
+    // 1) Try to find <video src="..."> in the page
+    val videoTag = doc.selectFirst("video")
+    if (videoTag != null) {
+        val src = videoTag.attr("src").ifEmpty { videoTag.attr("data-src") }
+        if (src.isNotEmpty()) {
+            val stream = mapOf("title" to (doc.title().ifEmpty { "Cineby" }), "streams" to listOf(mapOf("url" to src)))
+            return stream
+        }
+    }
+
+    // 2) Fallback: look inside the __NEXT_DATA__ JSON blob for common player keys
+    val nextData = doc.selectFirst("#__NEXT_DATA__")?.html() ?: ""
+    if (nextData.isNotEmpty()) {
+        // try common patterns: "file":"https://...", "sources":[{"file":"https://..."}]
+        val patterns = arrayOf(
+            "\"file\"\\s*:\\s*\"(https?:\\\\?/\\\\?/[^\"\\\\]+)\"",
+            "\"file\"\\s*:\\s*\"(https?:[^\"\\\\]+)\"",
+            "\"sources\"\\s*:\\s*\\[\\s*\\{[^}]*\"file\"\\s*:\\s*\"(https?:[^\"\\\\]+)\"",
+            "\"url\"\\s*:\\s*\"(https?:[^\"\\\\]+)\"" // sometimes the field is url
+        )
+        for (p in patterns) {
+            val pat = Pattern.compile(p)
+            val m = pat.matcher(nextData)
+            if (m.find()) {
+                // unescape backslashes if any
+                val raw = m.group(1).replace("\\/", "/").replace("\\\\", "\\")
+                val stream = mapOf("title" to (doc.title().ifEmpty { "Cineby" }), "streams" to listOf(mapOf("url" to raw)))
+                return stream
+            }
+        }
+    }
+
+    // 3) Nothing found
+    return mapOf("title" to doc.title().ifEmpty { "Cineby" }, "streams" to emptyList<Any>())
+}
+
+// ---------- Small compatibility wrappers Cloudstream expects
+// Exported functions Cloudstream will call:
+exports["list"] = { -> list() }
+exports["details"] = { url: String -> details(url) }
