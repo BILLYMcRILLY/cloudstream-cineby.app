@@ -1,0 +1,8 @@
+{
+  "name": "Cineby Repo",
+  "description": "Cloudstream plugin for cineby.app",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "https://raw.githubusercontent.com/BILLYMcRILLY/cloudstream-cineby.app/main/repository.json"
+  ]
+}
