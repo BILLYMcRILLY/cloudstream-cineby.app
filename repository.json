@@ -1,0 +1,14 @@
+[
+  {
+    "apiVersion": 1,
+    "repositoryUrl": "https://github.com/BILLYMcRILLY/cloudstream-cineby.app",
+    "fileSize": 1234,
+    "status": 1,
+    "language": "en",
+    "version": 1,
+    "internalName": "cineby",
+    "description": "Plugin for cineby.app",
+    "url": "https://raw.githubusercontent.com/BILLYMcRILLY/cloudstream-cineby.app/main/cineby.json",
+    "name": "Cineby"
+  }
+]
