@@ -1,0 +1,16 @@
+{
+  "id": "cineby",
+  "name": "Cineby",
+  "baseUrl": "https://cineby.app",
+  "categories": [
+    {
+      "title": "All Content",
+      "url": "/"
+    }
+  ],
+  "parsers": {
+    "list": ".movieCard_movieCardFilter__EZTIk",
+    "details": "video",
+    "streams": "video@src"
+  }
+}
