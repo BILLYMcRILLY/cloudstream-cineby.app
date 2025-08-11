@@ -1,0 +1,2 @@
+# cloudstream-cineby.app
+test
